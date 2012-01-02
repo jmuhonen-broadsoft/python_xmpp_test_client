@@ -1,0 +1,6 @@
+[submodule "SleekXMPP"]
+	path = SleekXMPP
+	url = git@github.com:fritzy/SleekXMPP.git
+[submodule "dnspython"]
+	path = dnspython
+	url = git@github.com:jmuhonen-broadsoft/dnspython.git
