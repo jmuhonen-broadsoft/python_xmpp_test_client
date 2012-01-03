@@ -76,12 +76,12 @@ class RosterHandler(XmppHandler):
 		elif self.action == "save":
 			fname = list(self.jids)[0] if len(self.jids) == 1 else "roster.txt"
 			with open(fname, "w") as r_file:
-				output("saving to", fname)
+				output("saving to %s" % fname)
 				r_file.truncate()
 				for jid in self.client_roster:
 					r_file.write(jid + "\n")
 		elif self.action not in [None, "pres"]:
-			output("Unknown action: " + self.action)
+			output("Unknown action: %s" % (self.action))
 
 		if disconnect:
 			if jids != None and len(self.jids) > 0:
@@ -96,12 +96,12 @@ class RosterHandler(XmppHandler):
 			jid = list(jids)[0]
 			if jid in self.jids:
 				if self.action == "del":
-					output("Deleted and unsubscribed", jid)
+					output("Deleted and unsubscribed %s" % (jid))
 				elif self.action == "unsubs":
-					output("Unsubscribed", jid)
+					output("Unsubscribed %s" % (jid))
 				elif self.action.startswith( "add" ):
-					added = "Added" + (" and subscribed" if len(self.action) == 3 else "")
-					output(added, jid)
+					added = "Added" + (" and subscribed" if len(self.action) == 3 else "") + "%s"
+					output(added % (jid))
 
 				self.jids.remove(jid)
 
@@ -109,10 +109,15 @@ class RosterHandler(XmppHandler):
 			output("Done, disconnecting")
 			self.disconnect()
 
+def usage():
+	return "usage: python roster.py [config file path] [add | addonly | del | pres | save | subs | unsubs] [file with jids separated by line end | list of jids | file to save your roster to]"
 
 import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
+	if len(sys.argv) == 1:
+		output(usage())
+
 	filename = sys.argv[1] if len(sys.argv) > 1 else "config.xml"
 	action = sys.argv[2] if len(sys.argv) > 2 else None
 
