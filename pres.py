@@ -23,14 +23,14 @@ class PresHandler(XmppHandler):
 		try:
 			self.get_roster()
 		except IqError as err:
-			output('Error: %' % err.iq['error']['condition'])
+			output("Error: %s" % err.iq['error']['condition'])
 		except IqTimeout:
-			output('Error: Request timed out')
+			output("Error: Request timed out")
 
 		self.send_presence()
 		if not self.sentpresence:
 			output("Didn't send presence...")
-		output('Waiting for presence updates...\n')
+		output("Waiting for presence updates...\n")
 		self.await_for = set(self.boundjid.bare)
 		self.wait_for_presence(5)
 
