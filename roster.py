@@ -110,7 +110,12 @@ class RosterHandler(XmppHandler):
 			self.disconnect()
 
 def usage():
-	return "usage: python roster.py [config file path] [add | addonly | del | pres | save | subs | unsubs] [file with jids separated by line end | list of jids | file to save your roster to]"
+	usage = "usage:\npython roster.py\n"
+	usage += "\t[config file path]\n"
+	usage += "\t\t[add | addonly | del | pres | save | subs | unsubs]\n"
+	usage += "\t\t\t[file with jids separated by line end | list of jids | file to save your roster to]\n"
+	return usage
+
 
 import sys
 

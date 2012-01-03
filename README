@@ -1,0 +1,12 @@
+This is a command line tool to edit contact list and publish presence.
+It works on python 3.2 and should work on > python 3.0 and possibly > python 2.7 (not tested yet)
+
+Usage:
+- to setup the tool call "python setup.py"
+
+You need to have a configuration file (works on mobile config, should work with pc config)
+- to get config file call "python get.py" to see usage
+
+To use the client for something useful
+- to manage presence call "python presence.py" to see usage
+- to manage roster call "python roster.py" to see usage
