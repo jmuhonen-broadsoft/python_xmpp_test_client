@@ -3,6 +3,8 @@
 from base import *
 
 class Presence:
+	show_values = list(sleekxmpp.stanza.Presence.types)[:2] + list(sleekxmpp.stanza.Presence.showtypes)
+
 	def __init__(self, show, text, prio):
 		self.show = show
 		self.text = text
@@ -55,14 +57,30 @@ class PresHandler(XmppHandler):
 				input("Press any key to disconnect")
 				self.disconnect()
 
+def usage():
+	usage = "usage:\npython pres.py [config file path] (content for show) (content for free text) (priority)\n"
+	usage += "values for show: " + str(Presence.show_values) + "\n"
+	usage += "after publish has been done, you can keep the client online as long as you want"
+	return usage
+
+
 import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
+	if len(sys.argv) == 1:
+		output(usage())
+
 	filename = sys.argv[1] if len(sys.argv) > 1 else "config.xml"
 
 	presence = None
 	if len(sys.argv) > 2:
 		show = sys.argv[2]
+		force = sys.argv[5].lower() == "true" if len(sys.argv) > 5 else False
+		if show not in Presence.show_values and not force:
+			output("Unable to publish show values outside of " + str(Presence.show_values))
+			output("Call: python pres.py " + show + " freetext priority true - to try publishing. This is not supported operation!")
+			exit()
+		
 		text = sys.argv[3] if len(sys.argv) > 3 and len(sys.argv[3]) > 0 else None
 		prio = sys.argv[4] if len(sys.argv) > 4 else None
 		presence = Presence( show, text, prio )

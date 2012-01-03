@@ -19,8 +19,16 @@ def writeDm(dm_cfn, dm_xml):
 		file.truncate()
 		file.write(dm_xml)
 
+def usage():
+	usage = "usage:\npython get.py [device management url] [username] [password] (file name for downloaded content)\n"
+	return usage
+
+
 import sys
-if len(sys.argv) > 1 and __file__ == sys.argv[0]:
+
+if len(sys.argv) == 1:
+	output(usage())
+elif len(sys.argv) > 1 and __file__ == sys.argv[0]:
 	dm_url = sys.argv[1]
 	dm_cfn = sys.argv[4] if len(sys.argv) > 4 else "config.xml"
 	dm_usr = None
