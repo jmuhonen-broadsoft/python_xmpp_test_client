@@ -4,6 +4,12 @@ import xml.etree.ElementTree as ET
 import random, string
 import sleekxmpp
 import threading
+import sys
+
+if sys.version_info < (3, 0):
+	from output2 import *
+else:
+	from output3 import *
 
 class XmppDetails:
 	def __init__(self, server, port, secure, username, password, resource):
@@ -52,6 +58,9 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		self.received = set()
 		self.presences_received = threading.Event()
 
+		self.auto_authorize = False
+		self.auto_subscribe = False
+
 	def connect(self):
 		conn = None
 		if not sleekxmpp.clientxmpp.DNSPYTHON:
@@ -63,7 +72,7 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		if self.await_for is not None:
 			self.await_for = self.await_for - self.received
 			if len(self.await_for) > 0:
-				self.presences_received.wait(how_many)
+				self.presences_received.wait(how_many) #what number is this?!?
 
 	def changed_status(self, pres):
 		from_jid = pres["from"].bare
@@ -79,11 +88,11 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		else:
 			self.presences_received.set()
 
-	def print_pres(connections):
-		if connections is not None:
-			print(connections)
-			for res, pres in connections.items():
+	def output_pres(resources):
+		if resources is not None:
+			output(resources)
+			for res, pres in resources.items():
 				show = pres["show"] if pres["show"] else "??????"
 				status = pres["status"] if pres["status"] else "??????"
-				print( " + res: {0} show: {1} status: {2}".format( res, show, status ))
+				output( " + res: %s, show: %s, status: %s" % ( res, show, status ))
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import urllib.request as request
+from base import *
 
 def getDm(dm_url, dm_usr, dm_pwd):
 	if dm_usr is not None and dm_usr is not None:
@@ -31,7 +32,7 @@ if len(sys.argv) > 1 and __file__ == sys.argv[0]:
 	try:
 		xml = getDm(dm_url, dm_usr, dm_pwd)
 	except:
-		print("get failed")
+		output("get failed")
 		exit()
 
 	writeDm(dm_cfn, xml)
