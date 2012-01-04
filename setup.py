@@ -2,12 +2,12 @@
 
 from os import popen, chdir
 import sys
-from base import *
+from base import output
 
 branch = "python2" if sys.version_info < (3, 0) else "python3"
 executable = sys.executable
 output("Using python from %s" % executable)
-
+"""
 fetching = popen("git fetch").read()
 if len(fetching) > 0:
 	popen("git checkout " + branch )
@@ -22,3 +22,4 @@ if len(fetching) > 0:
 		output(popen(executable + "setup.py install").read())
 		chdir("..")
 		output("Text client has been updated!")
+"""
