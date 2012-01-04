@@ -61,6 +61,10 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		self.auto_authorize = False
 		self.auto_subscribe = False
 
+		if sleekxmpp.clientxmpp.DNSPYTHON:
+			import dns.resolver
+			dns.resolver.get_default_resolver().nameservers.extend(["8.8.8.8","8.8.4.4"])
+
 	def connect(self):
 		conn = None
 		if not sleekxmpp.clientxmpp.DNSPYTHON:
