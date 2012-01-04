@@ -7,6 +7,9 @@ import threading
 from output import *
 
 
+import logging
+logging.basicConfig()
+
 class XmppDetails:
 	def __init__(self, server, port, secure, username, password, resource):
 		chars = string.ascii_lowercase + string.digits
