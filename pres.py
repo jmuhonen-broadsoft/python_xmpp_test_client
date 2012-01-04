@@ -36,7 +36,7 @@ class PresHandler(XmppHandler):
 		self.await_for = set([self.boundjid.bare])
 		self.wait_for_presence()
 
-		self.add_event_handler("changed_status", self.changed_status)
+		self.add_event_handler("changed_status", self.changed_status, threaded=True)
 		pres = self.presence
 		if pres is not None:
 			self.send_presence( pshow = pres.show, pstatus = pres.text, ppriority = pres.prio )
@@ -54,7 +54,11 @@ class PresHandler(XmppHandler):
 				self.del_event_handler("changed_status", self.changed_status)
 				output("Own presence updated")
 #				output(pres)
-				input("Press any key to disconnect")
+				text = "Press any key to disconnect"
+				if PYTHON2:
+					raw_input(text)
+				else:
+					input(text)
 				self.disconnect()
 
 def usage():
