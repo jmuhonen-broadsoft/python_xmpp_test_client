@@ -4,12 +4,8 @@ import xml.etree.ElementTree as ET
 import random, string
 import sleekxmpp
 import threading
-import sys
+from output import *
 
-if sys.version_info < (3, 0):
-	from output2 import *
-else:
-	from output3 import *
 
 class XmppDetails:
 	def __init__(self, server, port, secure, username, password, resource):
