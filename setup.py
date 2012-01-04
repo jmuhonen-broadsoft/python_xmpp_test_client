@@ -2,7 +2,7 @@
 
 from os import popen, chdir
 import sys
-from base import output
+import output
 
 branch = "python2" if sys.version_info < (3, 0) else "python3"
 executable = sys.executable
