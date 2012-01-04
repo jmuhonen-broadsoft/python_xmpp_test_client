@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
-import urllib.request as request
+import sys
+if sys.version_info < (3, 0):
+	import urllib2 as request
+else:
+	import urllib.request as request
+
 from base import *
 
 def getDm(dm_url, dm_usr, dm_pwd):
