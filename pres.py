@@ -14,7 +14,7 @@ class PresHandler(XmppHandler):
 	def __init__(self, xml):
 		XmppHandler.__init__(self, xml)
 
-		self.add_event_handler("session_start", self.start)
+		self.add_event_handler("session_start", self.start, threaded=True)
 		self.presence = None
 
 	def setPresence(self, presence):
@@ -33,8 +33,8 @@ class PresHandler(XmppHandler):
 		if not self.sentpresence:
 			output("Didn't send presence...")
 		output("Waiting for presence updates...\n")
-		self.await_for = set(self.boundjid.bare)
-		self.wait_for_presence(5)
+		self.await_for = set([self.boundjid.bare])
+		self.wait_for_presence()
 
 		self.add_event_handler("changed_status", self.changed_status)
 		pres = self.presence
