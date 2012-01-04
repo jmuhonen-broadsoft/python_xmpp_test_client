@@ -8,7 +8,7 @@ class RosterHandler(XmppHandler):
 	def __init__(self, xml):
 		XmppHandler.__init__(self, xml)
 
-		self.add_event_handler("session_start", self.start)
+		self.add_event_handler("session_start", self.start, threaded=True)
 		self.action = None
 		self.jids = set()
 
@@ -29,19 +29,26 @@ class RosterHandler(XmppHandler):
 		if self.action == "pres":
 			self.send_presence()
 			output('Waiting for presence updates...\n')
-			self.await_for = set(self.boundjid.bare) | set(self.client_roster) | set("foo@bar.com")
-			self.wait_for_presence(15) #what number is this?!?
+			self.await_for = set([self.boundjid.bare]) | set(self.client_roster)
+			self.wait_for_presence()
 
-		output("Roster for %s" % ( self.boundjid.bare ))
+		text = "Roster for %s" % ( self.boundjid.bare )
 		if self.action == "pres":
-			XmppHandler.output_pres( None )
+			pres = self.presence_to_str( self.boundjid.bare )
+			if pres is not None:
+				text += " " + pres
+		output( text )
 
 		output("-" * 60)
 		for jid in self.client_roster:
-			item = self.client_roster[jid]
-			output("%s [ss: %s, pending: %s, waiting: %s]" % ( jid, item["subscription"], item["pending_in"], item["pending_out"]))
-			if self.action == "pres":
-				XmppHandler.output_pres( self.client_roster.presence( jid ))
+			if jid is not self.boundjid.bare:
+				item = self.client_roster[jid]
+				text = " " + ("%s %s" % ( item["name"], jid) if len(item["name"]) > 0 else "%s" % jid)
+				text += " [ss: %s, pending: %s, waiting: %s]" % ( item["subscription"], item["pending_in"], item["pending_out"])
+				if self.action == "pres":
+					pres = self.presence_to_str( jid )
+					text += " (" + ( pres if pres is not None else "No presence information" ) +")"
+				output( text )
 		output()
 
 		self.add_event_handler("roster_update", self.roster_update)

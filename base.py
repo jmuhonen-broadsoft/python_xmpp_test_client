@@ -53,13 +53,18 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		sleekxmpp.ClientXMPP.__init__(self, details.username, details.password)
 		self.details = details
 
-		self.add_event_handler("changed_status", self.changed_status)
+		self.add_event_handler( "changed_status", self.changed_status )
 		self.await_for = None
 		self.received = set()
-		self.presences_received = threading.Event()
+		self.presences = dict()
 
+		self.presences_received = threading.Event()
 		self.auto_authorize = False
 		self.auto_subscribe = False
+
+		if sleekxmpp.clientxmpp.DNSPYTHON:
+			import dns.resolver
+			dns.resolver.get_default_resolver().nameservers.extend(["8.8.8.8","8.8.4.4"])
 
 	def connect(self):
 		conn = None
@@ -68,31 +73,32 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 
 		return sleekxmpp.ClientXMPP.connect( self, conn, False, self.details.secure )
 
-	def wait_for_presence(self, how_many):
+	def wait_for_presence(self):
 		if self.await_for is not None:
 			self.await_for = self.await_for - self.received
-			if len(self.await_for) > 0:
-				self.presences_received.wait(how_many) #what number is this?!?
+			if len( self.await_for ) > 0:
+				self.presences_received.wait( min( len( self.await_for ), 15 ))
 
 	def changed_status(self, pres):
-		from_jid = pres["from"].bare
+		jid = pres["from"].bare
+		self.presences[jid] = pres
+
 		if self.await_for is None:
-			self.received = from_jid
+			self.received.add( jid )
 			return
 
-		if from_jid in self.await_for:
-			self.await_for.remove(jid)
+		if jid in self.await_for:
+			self.await_for.remove( jid )
 
 		if len(self.await_for) != 0:
 			self.presences_received.clear()
 		else:
 			self.presences_received.set()
 
-	def output_pres(resources):
-		if resources is not None:
-			output(resources)
-			for res, pres in resources.items():
-				show = pres["show"] if pres["show"] else "??????"
-				status = pres["status"] if pres["status"] else "??????"
-				output( " + res: %s, show: %s, status: %s" % ( res, show, status ))
-
+	def presence_to_str(self, jid):
+		if jid in self.presences:
+			pres = self.presences[jid]
+			show = pres["show"] if pres["show"] != "" else "available"
+			status = (" \"" + pres["status"] + "\"") if pres["status"] else ""
+			return "%s%s" % ( show, status )
+		return None
