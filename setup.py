@@ -7,6 +7,8 @@ from output import *
 branch = "python2" if sys.version_info < (3, 0) else "python3"
 executable = sys.executable
 output("Using python from %s" % executable)
+if platform.system() in ["Linux", "Darwin"]:
+	executable = "sudo " + executable
 
 popen("git fetch").read()
 popen("git checkout " + branch )
