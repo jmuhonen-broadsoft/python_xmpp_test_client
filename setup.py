@@ -15,7 +15,7 @@ popen("git submodule init")
 popen("git submodule sync")
 submod = popen("git submodule update").read()
 if len(submod) > 0:
-	chdir("SleekXmpp")
+	chdir("SleekXMPP")
 	output(popen(executable + "setup.py install").read())
 	chdir("../dnspython")
 	output(popen(executable + "setup.py install").read())
