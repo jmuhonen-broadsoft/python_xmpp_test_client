@@ -86,7 +86,8 @@ class RosterHandler(XmppHandler):
 				output("saving to %s" % fname)
 				r_file.truncate()
 				for jid in self.client_roster:
-					r_file.write(jid + "\n")
+					if jid is not self.boundjid.bare:
+						r_file.write(jid + "\n")
 		elif self.action not in [None, "pres"]:
 			output("Unknown action: %s" % (self.action))
 
