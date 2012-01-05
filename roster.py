@@ -69,7 +69,7 @@ class RosterHandler(XmppHandler):
 
 		jids = self.jids.copy()
 		self.add_event_handler("roster_update", self._roster_update)
-		disconnect = (self.jids == None or len(self.jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
+		disconnect = (jids == None or len(jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
 		if self.action in ["add", "addonly"]:
 			not_handled = 0
 			for jid in jids:
