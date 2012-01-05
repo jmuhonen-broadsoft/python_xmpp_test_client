@@ -8,7 +8,7 @@ class RosterHandler(XmppHandler):
 	def __init__(self, xml):
 		XmppHandler.__init__(self, xml)
 
-		self.add_event_handler("session_start", self.start, threaded=True)
+		self.add_event_handler("session_start", self._start, threaded=True)
 		self.action = None
 		self.jids = set()
 
@@ -17,7 +17,7 @@ class RosterHandler(XmppHandler):
 		if jids != None:
 			self.jids = set(jids)
 
-	def start(self, event):
+	def _start(self, event):
 		output("started")
 		try:
 			self.get_roster()
@@ -30,7 +30,7 @@ class RosterHandler(XmppHandler):
 			self.send_presence()
 			output('Waiting for presence updates...\n')
 			self.await_for = set([self.boundjid.bare]) | set(self.client_roster)
-			self.wait_for_presence()
+			self._wait_for_presence()
 
 		text = "Roster for %s" % ( self.boundjid.bare )
 		if self.action == "pres":
@@ -51,12 +51,28 @@ class RosterHandler(XmppHandler):
 				output( text )
 		output()
 
-		self.add_event_handler("roster_update", self.roster_update)
+		if self.action == "gen":
+			self.action = list(self.jids)[0] if len(self.jids) > 0 else "add"
+			jids = []
+			if self.action == "add":
+				how_many = int(list(self.jids)[1]) if len(self.jids) > 1 else 1
+				id = "gen." + gen_chars(8) + ".%d@generated.com"
+				output("generating %d contacts" % how_many)
+				for i in range(how_many):
+					jids.append(id % i)
+			elif self.action == "del":
+				output("Deleting generated contacts")
+				for jid in self.client_roster:
+					if jid.startswith("gen.") and jid.endswith("@generated.com"):
+						jids.append(jid)
+			self.jids = set(jids)
 
-		disconnect = (jids == None or len(self.jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
+		jids = self.jids.copy()
+		self.add_event_handler("roster_update", self._roster_update)
+		disconnect = (self.jids == None or len(self.jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
 		if self.action in ["add", "addonly"]:
 			not_handled = 0
-			for jid in self.jids:
+			for jid in jids:
 				if self.client_roster[jid]["subscription"] not in ["to", "both"]:
 					self.client_roster.add(jid)
 					self.client_roster.subscribe(jid)
@@ -65,38 +81,38 @@ class RosterHandler(XmppHandler):
 				else:
 					not_handled += 1
 					output( "%s already subscribed" % ( jid ))
-					disconnect = (len(self.jids) == not_handled)
+					disconnect = (len(jids) == not_handled)
 		elif self.action == "del":
-			for jid in self.jids:
+			for jid in jids:
 				self.client_roster.unsubscribe(jid)
 				self.client_roster.remove(jid)
 		elif self.action == "unsubs":
 			output()
 			not_handled = 0
-			for jid in self.jids:
+			for jid in jids:
 				if self.client_roster[jid]["subscription"] in ["to", "both"]:
 					self.client_roster.unsubscribe(jid)
 				else:
 					not_handled += 1
 					output( "%s not subscribed" % ( jid ))
-					disconnect = (len(self.jids) == not_handled)
+					disconnect = (len(jids) == not_handled)
 		elif self.action == "save":
-			fname = list(self.jids)[0] if len(self.jids) == 1 else "roster.txt"
+			fname = list(jids)[0] if len(jids) == 1 else "roster.txt"
 			with open(fname, "w") as r_file:
 				output("saving to %s" % fname)
 				r_file.truncate()
 				for jid in self.client_roster:
 					if jid is not self.boundjid.bare:
 						r_file.write(jid + "\n")
-		elif self.action not in [None, "pres"]:
+		elif self.action not in [None, "pres", "gen"]:
 			output("Unknown action: %s" % (self.action))
 
 		if disconnect:
-			if jids != None and len(self.jids) > 0:
+			if jids != None and len(jids) > 0:
 				output("Nothing to be done")
 			self.disconnect()
 
-	def roster_update(self, event):
+	def _roster_update(self, event):
 		event.enable("roster")
 		items = event["roster"]["items"]
 		jids = items.keys()
@@ -108,7 +124,7 @@ class RosterHandler(XmppHandler):
 				elif self.action == "unsubs":
 					output("Unsubscribed %s" % (jid))
 				elif self.action.startswith( "add" ):
-					added = "Added" + (" and subscribed" if len(self.action) == 3 else "") + "%s"
+					added = "Added" + (" and subscribed" if len(self.action) == 3 else "") + " %s"
 					output(added % (jid))
 
 				self.jids.remove(jid)
@@ -120,8 +136,15 @@ class RosterHandler(XmppHandler):
 def usage():
 	usage = "usage:\npython roster.py\n"
 	usage += "\t[config file path]\n"
-	usage += "\t\t[add | addonly | del | pres | save | subs | unsubs]\n"
-	usage += "\t\t\t[file with jids separated by line end | list of jids | file to save your roster to]\n"
+	usage += "\t\t[add | addonly | del | gen | pres | save | subs | unsubs]\n"
+	usage += "\t\t\t[file with jids separated by line end | list of jids | [add [amount] | del] | file to save your roster to]\n"
+	usage += "examples:\n"
+	usage += "python roster.py config.xml <command> roster.txt (command: add/addonly/del/subs/unsubs)\n"
+	usage += "python roster.py config.xml <command> dude@server.com dude2@place.net (command: add/addonly/del/subs/unsubs)\n"
+	usage += "python roster.py config.xml pres\n"
+	usage += "python roster.py config.xml gen add 12\n"
+	usage += "python roster.py config.xml gen del\n"
+	usage += "python roster.py config.xml save roster.txt\n"
 	return usage
 
 

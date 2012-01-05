@@ -10,10 +10,13 @@ from output import *
 import logging
 logging.basicConfig()
 
+def gen_chars(amount):
+	chars = string.ascii_lowercase + string.digits
+	return "".join([random.choice(chars) for i in range(amount)])
+
 class XmppDetails:
 	def __init__(self, server, port, secure, username, password, resource):
-		chars = string.ascii_lowercase + string.digits
-		username = username + "/" + resource + "_broadsoft_text_client_" + "".join([random.choice(chars) for i in range(8)])
+		username = username + "/" + resource + "_broadsoft_text_client_" + gen_chars(8)
 
 		self.server = server
 		self.port = port if port != None and len(port) > 0 else 5222
@@ -52,7 +55,7 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		sleekxmpp.ClientXMPP.__init__(self, details.username, details.password)
 		self.details = details
 
-		self.add_event_handler( "changed_status", self.changed_status )
+		self.add_event_handler( "changed_status", self._changed_status )
 		self.await_for = None
 		self.received = set()
 		self.presences = dict()
@@ -72,13 +75,13 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 
 		return sleekxmpp.ClientXMPP.connect( self, conn, False, self.details.secure )
 
-	def wait_for_presence(self):
+	def _wait_for_presence(self):
 		if self.await_for is not None:
 			self.await_for = self.await_for - self.received
 			if len( self.await_for ) > 0:
 				self.presences_received.wait( min( len( self.await_for ), 15 ))
 
-	def changed_status(self, pres):
+	def _changed_status(self, pres):
 		jid = pres["from"].bare
 		self.presences[jid] = pres
 
