@@ -1,4 +1,8 @@
 #!/usr/bin/env python
 
+from threading import Lock
+
+plock = Lock()
 def output(what = ""):
-	print(what)
+	with plock:
+		print(what)
