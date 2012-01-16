@@ -16,7 +16,7 @@ def gen_chars(amount):
 
 class XmppDetails:
 	def __init__(self, server, port, secure, username, password, resource):
-		username = username + "/" + resource + "_broadsoft_text_client_" + gen_chars(8)
+		username = username if username is not None else "" + "/" + resource + "_broadsoft_text_client_" + gen_chars(8)
 
 		self.server = server
 		self.port = port if port != None and len(port) > 0 else 5222
@@ -24,6 +24,12 @@ class XmppDetails:
 		self.username = username
 		self.password = password
 
+	def set_username(self, username):
+		splitted = self.username.split("/")
+		self.username = username + "/" + splitted[1]
+
+	def set_password(self, password):
+		self.password = password
 
 def extractXmppDetails(xml):
 	config = ET.fromstring(xml)
@@ -50,8 +56,14 @@ def extractXmppDetails(xml):
 
 
 class XmppHandler(sleekxmpp.ClientXMPP):
-	def __init__(self, xml):
+
+	def __init__(self, xml, username = None, password = None):
 		details = extractXmppDetails(xml)
+		if username is not None:
+			details.set_username( username )
+		if password is not None:
+			details.set_password( password )
+
 		sleekxmpp.ClientXMPP.__init__(self, details.username, details.password)
 		self.details = details
 
@@ -67,6 +79,9 @@ class XmppHandler(sleekxmpp.ClientXMPP):
 		if sleekxmpp.clientxmpp.DNSPYTHON:
 			import dns.resolver
 			dns.resolver.get_default_resolver().nameservers.extend(["8.8.8.8","8.8.4.4"])
+			
+	def get_details(self):
+		return self.details
 
 	def connect(self):
 		conn = None
