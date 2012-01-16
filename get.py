@@ -9,14 +9,14 @@ else:
 from base import *
 
 def getDm(dm_url, dm_usr, dm_pwd):
-	if dm_usr is not None and dm_usr is not None:
+	if dm_usr is not None and dm_pwd is not None:
 		pwd_mgr = request.HTTPPasswordMgrWithDefaultRealm()
 		pwd_mgr.add_password(None, dm_url, dm_usr, dm_pwd)
 		handler = request.HTTPBasicAuthHandler(pwd_mgr)
 		opener = request.build_opener(handler)
 		request.install_opener(opener)
 
-	req = request.urlopen(dm_url)
+	req = request.urlopen(dm_url, timeout=5)
 	return req.read()
 
 def writeDm(dm_cfn, dm_xml):

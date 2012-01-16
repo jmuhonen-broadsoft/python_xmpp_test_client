@@ -4,8 +4,8 @@ from base import *
 import time
 
 class MsgHandler(XmppHandler):
-	def __init__(self, xml):
-		XmppHandler.__init__(self, xml)
+	def __init__(self, xml, username = None, password = None):
+		XmppHandler.__init__(self, xml, username, password)
 
 		self.add_event_handler("session_start", self._start, threaded=False)
 		self.msg = None
