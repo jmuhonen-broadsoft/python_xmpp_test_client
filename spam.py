@@ -3,7 +3,7 @@
 from msg import *
 
 def usage():
-	usage = "usage:\npython spam.py [config file with server details] [jid(s) + passwd(s) file] [recipient] [message | filename to a file from where the message is read]\n"
+	usage = "usage:\npython spam.py [config file with server details] [jid(s) + passwd(s) file] [recipient] [message | filename to a file from where the message is read] (number of messages)\n"
 	usage += "examples:\n"
 	usage += "python spam.py config.xml users.txt foo@bar.com \"Hello\"\n"
 	usage += "python spam.py config.xml users.txt foo@bar.com msg.txt\n"
@@ -22,6 +22,7 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 
 		to = sys.argv[3]
 		txt = sys.argv[4]
+		amount = int(sys.argv[5]) if len(sys.argv) > 5 else 1
 		try:
 			file = open(txt, "r")
 			txt = file.read()
@@ -36,13 +37,20 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 				for line in file:
 					msgs += 1
 					stuff = line.split(" ")
+					if len(stuff) != 2:
+						exit()
+
 					usr = stuff[0].strip()
 					pwd = stuff[1].strip()
-					output("\n-------------------------------------------------")
+					output("\n------------------------------------------------------------------------------")
 					output( "logging in with: \"" + usr + "\" + \"" + pwd + "\"" )
 
 					client = MsgHandler( config, username = usr, password = pwd )
-					client.setMessage( to, str(msgs) + ": " + txt )
+					msg = txt + " (" + str(msgs) + ":"
+					for i in range(1, amount + 1):
+						client.add_message( to, msg + str(i) + ")" )
+
+					client.set_sleep(1)
 					if client.connect():
 						client.process(block=True)
-					output("-------------------------------------------------\n")
+					output("------------------------------------------------------------------------------\n")
