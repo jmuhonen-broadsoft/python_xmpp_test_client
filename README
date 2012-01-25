@@ -10,3 +10,5 @@ You need to have a configuration file (works on mobile config, should work with 
 To use the client for something useful
 - to manage presence call "python presence.py" to see usage
 - to manage roster call "python roster.py" to see usage
+- to send chat messages from single user to single recipient call "python msg.py" to see usage
+- to send chat messages from multiple users to a single recipient call "python spam.py" to see usage

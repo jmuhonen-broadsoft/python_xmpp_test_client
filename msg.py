@@ -28,7 +28,7 @@ class MsgHandler(XmppHandler):
 
 		self.send_presence()
 		for msg in self.msg:
-			self.send_message( mfrom=self.boundjid.bare, mto=msg["to"], mbody=msg["txt"], mtype="chat" )
+			self.send_message( mfrom=self.boundjid, mto=msg["to"], mbody=msg["txt"], mtype="chat" )
 			output("Message \"%s\" sent to %s" %(msg["txt"], msg["to"])) 
 			time.sleep(self.sleep)
 		self.disconnect()
@@ -37,7 +37,7 @@ def usage():
 	usage = "usage:\npython msg.py [config file path] [recipient] [message | filename to a file from where the message is read] (amount)"
 	usage += "examples:\n"
 	usage += "python msg.py config.xml user@server.com \"Hello\"\n"
-	usage += "python msg.py config.xml user@server.com msg.txt\n"
+	usage += "python msg.py config.xml user@server.com msg.txt 7\n"
 	return usage
 
 
@@ -60,7 +60,7 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 		
 		with open(filename, "r") as config:
 			client = MsgHandler( config.read() )
-			if amount > 1;
+			if amount > 1:
 				for i in range(1, amount + 1):
 					client.add_message( to, txt + " (" + i + ")" )
 			else:

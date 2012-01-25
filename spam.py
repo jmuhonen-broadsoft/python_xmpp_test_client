@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from msg import *
+import time
 
 def usage():
 	usage = "usage:\npython spam.py [config file with server details] [jid(s) + passwd(s) file] [recipient] [message | filename to a file from where the message is read] (number of messages)\n"
@@ -48,7 +49,7 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 					client = MsgHandler( config, username = usr, password = pwd )
 					msg = txt + " (" + str(msgs) + ":"
 					for i in range(1, amount + 1):
-						client.add_message( to, msg + str(i) + ")" )
+						client.add_message( to, "[" + time.strftime("%H:%M:%S") + "] " + msg + str(i) + ")" )
 
 					client.set_sleep(1)
 					if client.connect():
