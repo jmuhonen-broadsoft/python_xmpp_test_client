@@ -14,7 +14,7 @@ def usage():
 import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
-	if len(sys.argv) == 1:
+	if len(sys.argv) < 5:
 		output(usage())
 
 	if len(sys.argv) > 4:
