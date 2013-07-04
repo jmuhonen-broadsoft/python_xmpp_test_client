@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from base import *
 
 class Presence:
@@ -21,18 +22,18 @@ class PresHandler(XmppHandler):
 		self.presence = presence
 
 	def _start(self, event):
-		output("started")
+		print("started")
 		try:
 			self.get_roster()
 		except IqError as err:
-			output("Error: %s" % err.iq['error']['condition'])
+			print("Error: %s" % err.iq['error']['condition'])
 		except IqTimeout:
-			output("Error: Request timed out")
+			print("Error: Request timed out")
 
 		self.send_presence()
 		if not self.sentpresence:
-			output("Didn't send presence...")
-		output("Waiting for presence updates...\n")
+			print("Didn't send presence...")
+		print("Waiting for presence updates...\n")
 		self.await_for = set([self.boundjid.bare])
 		self._wait_for_presence()
 
@@ -41,7 +42,7 @@ class PresHandler(XmppHandler):
 			self.add_event_handler("changed_status", self._changed_status, threaded=True)
 			self.send_presence( pshow = pres.show, pstatus = pres.text, ppriority = pres.prio )
 		else:
-			output("no presence set, disconnecting")
+			print("no presence set, disconnecting")
 			self.disconnect()
 
 	def _changed_status(self, pres):
@@ -49,11 +50,11 @@ class PresHandler(XmppHandler):
 			show = (pres['show'] == self.presence.show or (pres['show'] == "" and self.presence.show == "available"))
 			status = (pres['status'] == ("" if self.presence.text == None else self.presence.text))
 			prio = (str(pres['priority']) == ("0" if self.presence.prio == None else self.presence.prio))
-#			output(show, status, prio)
+#			print(show, status, prio)
 			if show and status and prio:
 				self.del_event_handler("changed_status", self._changed_status)
-				output("Own presence updated")
-#				output(pres)
+				print("Own presence updated")
+#				print(pres)
 				text = "Press any key to disconnect"
 				if PYTHON2:
 					raw_input(text)
@@ -76,7 +77,7 @@ import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 	if len(sys.argv) == 1:
-		output(usage())
+		print(usage())
 
 	filename = sys.argv[1] if len(sys.argv) > 1 else "config.xml"
 
@@ -85,13 +86,13 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 		show = sys.argv[2]
 		force = sys.argv[5].lower() == "true" if len(sys.argv) > 5 else False
 		if show not in Presence.show_values and not force:
-			output("Unable to publish show values outside of " + str(Presence.show_values))
-			output("Call: python pres.py " + show + " freetext priority true - to try publishing. This is not supported operation!")
+			print("Unable to publish show values outside of " + str(Presence.show_values))
+			print("Call: python pres.py " + show + " freetext priority true - to try publishing. This is not supported operation!")
 			exit()
 		
 		text = sys.argv[3] if len(sys.argv) > 3 and len(sys.argv[3]) > 0 else None
 		prio = sys.argv[4] if len(sys.argv) > 4 else None
-#		output( sys.argv[2:] )
+#		print( sys.argv[2:] )
 		presence = Presence( show, text, prio )
 
 	with open(filename, "r") as config:

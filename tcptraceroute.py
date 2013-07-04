@@ -5,15 +5,15 @@
 #
 # Small python interoperability fixes done by Jussi Muhonen no rights reserved
 
+from __future__ import print_function
 import os
 import re
 import sys
 import struct
 import socket
-from output import *
 
 def usage():
-    output('''Usage: %s host port
+    print('''Usage: %s host port
 Tries to connect to host at TCP port with increasing TTL (Time to live).
 If /etc/services exists (on most Unix systems), you can give the protocol
 name for the port. Example 'ssh' instead of 22.
@@ -30,7 +30,7 @@ def main():
         port_int=int(port)
     except ValueError:
         if not os.path.exists('/etc/services'):
-            output( 'port needs to be an integer if /etc/services does not exist.' )
+            print( 'port needs to be an integer if /etc/services does not exist.' )
             sys.exit(1)
         fd=open('/etc/services')
         for line in fd:
@@ -39,7 +39,7 @@ def main():
                 port_int=int(match.group(1))
                 break
         if not port_int:
-            output( 'port %s not in /etc/services' % port )
+            print( 'port %s not in /etc/services' % port )
             sys.exit(1)
     port=port_int
     for ttl in range(1, 30):
@@ -50,14 +50,14 @@ def main():
             try:
                 s.connect((host, port))
             except (socket.error, socket.timeout) as err:
-                output( 'ttl=%02d: %s' % (ttl, err) )
+                print( 'ttl=%02d: %s' % (ttl, err) )
                 continue
             except KeyboardInterrupt:
-                output( 'ttl=%02d (KeyboardInterrupt)' % ttl )
+                print( 'ttl=%02d (KeyboardInterrupt)' % ttl )
                 break
         finally:
             s.close()
-        output( 'ttl=%02d: OK' % (ttl) )
+        print( 'ttl=%02d: OK' % (ttl) )
         break
 
 if __name__=='__main__':

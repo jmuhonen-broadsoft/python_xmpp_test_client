@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from base import *
 import time
 
@@ -18,18 +19,18 @@ class MsgHandler(XmppHandler):
 		self.sleep = sleep
 
 	def _start(self, event):
-		output("started")
+		print("started")
 		try:
 			self.get_roster()
 		except IqError as err:
-			output("Error: %s" % err.iq['error']['condition'])
+			print("Error: %s" % err.iq['error']['condition'])
 		except IqTimeout:
-			output("Error: Request timed out")
+			print("Error: Request timed out")
 
 		self.send_presence()
 		for msg in self.msg:
 			self.send_message( mfrom=self.boundjid, mto=msg["to"], mbody=msg["txt"], mtype="chat" )
-			output("Message \"%s\" sent to %s" %(msg["txt"], msg["to"])) 
+			print("Message \"%s\" sent to %s" %(msg["txt"], msg["to"])) 
 			time.sleep(self.sleep)
 		self.disconnect()
 
@@ -45,7 +46,7 @@ import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 	if len(sys.argv) == 1:
-		output(usage())
+		print(usage())
 
 	if len(sys.argv) > 3:
 		filename = sys.argv[1]

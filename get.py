@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 if sys.version_info < (3, 0):
 	import urllib2 as request
@@ -32,7 +33,7 @@ def usage():
 import sys
 
 if len(sys.argv) == 1:
-	output(usage())
+	print(usage())
 elif len(sys.argv) > 1 and __file__ == sys.argv[0]:
 	dm_url = sys.argv[1]
 	dm_cfn = sys.argv[4] if len(sys.argv) > 4 else "config.xml"
@@ -45,7 +46,7 @@ elif len(sys.argv) > 1 and __file__ == sys.argv[0]:
 	try:
 		xml = getDm(dm_url, dm_usr, dm_pwd)
 	except:
-		output("get failed")
+		print("get failed")
 		exit()
 
 	writeDm(dm_cfn, xml)

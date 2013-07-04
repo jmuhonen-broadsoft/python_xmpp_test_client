@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import xml.etree.ElementTree as ET
 import random, string
 import sleekxmpp
 import threading
-from output import *
 
 
 import logging
@@ -26,7 +26,9 @@ class XmppDetails:
 
 	def set_username(self, username):
 		splitted = self.username.split("/")
-		self.username = username + "/" + splitted[1]
+		self.username = username
+		if splitted is not None and len(splitted) > 1:
+			self.username += "/" + splitted[1]
 
 	def set_password(self, password):
 		self.password = password

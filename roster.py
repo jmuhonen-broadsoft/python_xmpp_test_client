@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-
+from __future__ import print_function
 import sleekxmpp
 from base import *
 
 class RosterHandler(XmppHandler):
-	def __init__(self, xml):
-		XmppHandler.__init__(self, xml)
+	def __init__(self, xml, username = None, password = None):
+		XmppHandler.__init__(self, xml, username, password)
 
 		self.add_event_handler("session_start", self._start, threaded=True)
 		self.action = None
@@ -18,17 +18,17 @@ class RosterHandler(XmppHandler):
 			self.jids = set(jids)
 
 	def _start(self, event):
-		output("started")
+		print("started")
 		try:
 			self.get_roster()
 		except IqError as err:
-			output('Error: %' % err.iq['error']['condition'])
+			print('Error: %' % err.iq['error']['condition'])
 		except IqTimeout:
-			output('Error: Request timed out')
+			print('Error: Request timed out')
 
 		if self.action == "pres":
 			self.send_presence()
-			output('Waiting for presence updates...\n')
+			print('Waiting for presence updates...\n')
 			self.await_for = set([self.boundjid.bare]) | set(self.client_roster)
 			self._wait_for_presence()
 
@@ -37,9 +37,9 @@ class RosterHandler(XmppHandler):
 			pres = self.presence_to_str( self.boundjid.bare )
 			if pres is not None:
 				text += " " + pres
-		output( text )
+		print( text )
 
-		output("-" * 60)
+		print("-" * 60)
 		for jid in self.client_roster:
 			if jid is not self.boundjid.bare:
 				item = self.client_roster[jid]
@@ -48,8 +48,8 @@ class RosterHandler(XmppHandler):
 				if self.action == "pres":
 					pres = self.presence_to_str( jid )
 					text += " (" + ( pres if pres is not None else "No presence information" ) +")"
-				output( text )
-		output()
+				print( text )
+		print()
 
 		if self.action == "gen":
 			self.action = list(self.jids)[0] if len(self.jids) > 0 else "add"
@@ -57,11 +57,11 @@ class RosterHandler(XmppHandler):
 			if self.action == "add":
 				how_many = int(list(self.jids)[1]) if len(self.jids) > 1 else 1
 				id = "gen." + gen_chars(8) + ".%d@generated.com"
-				output("generating %d contacts" % how_many)
+				print("generating %d contacts" % how_many)
 				for i in range(how_many):
 					jids.append(id % i)
 			elif self.action == "del":
-				output("Deleting generated contacts")
+				print("Deleting generated contacts")
 				for jid in self.client_roster:
 					if jid.startswith("gen.") and jid.endswith("@generated.com"):
 						jids.append(jid)
@@ -80,36 +80,36 @@ class RosterHandler(XmppHandler):
 						self.client_roster.unsubscribe(jid)
 				else:
 					not_handled += 1
-					output( "%s already subscribed" % ( jid ))
+					print( "%s already subscribed" % ( jid ))
 					disconnect = (len(jids) == not_handled)
 		elif self.action == "del":
 			for jid in jids:
 				self.client_roster.unsubscribe(jid)
 				self.client_roster.remove(jid)
 		elif self.action == "unsubs":
-			output()
+			print()
 			not_handled = 0
 			for jid in jids:
 				if self.client_roster[jid]["subscription"] in ["to", "both"]:
 					self.client_roster.unsubscribe(jid)
 				else:
 					not_handled += 1
-					output( "%s not subscribed" % ( jid ))
+					print( "%s not subscribed" % ( jid ))
 					disconnect = (len(jids) == not_handled)
 		elif self.action == "save":
 			fname = list(jids)[0] if len(jids) == 1 else "roster.txt"
 			with open(fname, "w") as r_file:
-				output("saving to %s" % fname)
+				print("saving to %s" % fname)
 				r_file.truncate()
 				for jid in self.client_roster:
 					if jid is not self.boundjid.bare:
 						r_file.write(jid + "\n")
 		elif self.action not in [None, "pres", "gen"]:
-			output("Unknown action: %s" % (self.action))
+			print("Unknown action: %s" % (self.action))
 
 		if disconnect:
 			if jids != None and len(jids) > 0:
-				output("Nothing to be done")
+				print("Nothing to be done")
 			self.disconnect()
 
 	def _roster_update(self, event):
@@ -120,23 +120,23 @@ class RosterHandler(XmppHandler):
 			jid = list(jids)[0]
 			if jid in self.jids:
 				if self.action == "del":
-					output("Deleted and unsubscribed %s" % (jid))
+					print("Deleted and unsubscribed %s" % (jid))
 				elif self.action == "unsubs":
-					output("Unsubscribed %s" % (jid))
+					print("Unsubscribed %s" % (jid))
 				elif self.action.startswith( "add" ):
 					added = "Added" + (" and subscribed" if len(self.action) == 3 else "") + " %s"
-					output(added % (jid))
+					print(added % (jid))
 
 				self.jids.remove(jid)
 
 		if len(self.jids) == 0:
-			output("Done, disconnecting")
+			print("Done, disconnecting")
 			self.disconnect()
 
 def usage():
 	usage = "usage:\npython roster.py\n"
-	usage += "\t[config file path]\n"
-	usage += "\t\t[add | addonly | del | gen | pres | save | subs | unsubs]\n"
+	usage += "\t[config file path] & (userame:password)\n"
+	usage += "\t\t[ add | addonly | del | gen | pres | save | subs | unsubs]\n"
 	usage += "\t\t\t[file with jids separated by line end | list of jids | [add [amount] | del] | file to save your roster to]\n"
 	usage += "examples:\n"
 	usage += "python roster.py config.xml <command> roster.txt (command: add/addonly/del/subs/unsubs)\n"
@@ -145,6 +145,7 @@ def usage():
 	usage += "python roster.py config.xml gen add 12\n"
 	usage += "python roster.py config.xml gen del\n"
 	usage += "python roster.py config.xml save roster.txt\n"
+	usage += "python roster.py config.xml user:pwd save roster.txt\n"
 	return usage
 
 
@@ -152,23 +153,31 @@ import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 	if len(sys.argv) == 1:
-		output(usage())
+		print(usage())
 
 	filename = sys.argv[1] if len(sys.argv) > 1 else "config.xml"
 	action = sys.argv[2] if len(sys.argv) > 2 else None
+	if action is not None and ":" in action:
+		data = action.split(":")
+		username = data[0]
+		password = data[1]
+		action = sys.argv[3] if len(sys.argv) > 3 else None
+		argv = 4
+	else:
+		argv = 3
 
 	jids = None
-	if len(sys.argv) > 3:
+	if len(sys.argv) > argv:
 		try:
-			with open(sys.argv[3], "r") as file:
+			with open(sys.argv[argv], "r") as file:
 				jids = file.read().splitlines()
 		except IOError as e:
 			jids = []
-			for i in range(3, len(sys.argv)):
+			for i in range(argv, len(sys.argv)):
 				jids.append(sys.argv[i])
 
 	with open(filename, "r") as config:
-		client = RosterHandler( config.read() )
+		client = RosterHandler( config.read(), username, password )
 		client.setAction( action, jids )
 		if client.connect():
 			client.process(block=True)

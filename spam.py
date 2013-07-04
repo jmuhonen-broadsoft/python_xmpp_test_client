@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from msg import *
 import time
 
@@ -15,7 +16,7 @@ import sys
 
 if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 	if len(sys.argv) < 5:
-		output(usage())
+		print(usage())
 
 	if len(sys.argv) > 4:
 		conf_file = sys.argv[1]
@@ -43,8 +44,8 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 
 					usr = stuff[0].strip()
 					pwd = stuff[1].strip()
-					output("\n------------------------------------------------------------------------------")
-					output( "logging in with: \"" + usr + "\" + \"" + pwd + "\"" )
+					print("\n------------------------------------------------------------------------------")
+					print( "logging in with: \"" + usr + "\" + \"" + pwd + "\"" )
 
 					client = MsgHandler( config, username = usr, password = pwd )
 					msg = txt + " (" + str(msgs) + ":"
@@ -54,4 +55,4 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 					client.set_sleep(1)
 					if client.connect():
 						client.process(block=True)
-					output("------------------------------------------------------------------------------\n")
+					print("------------------------------------------------------------------------------\n")
