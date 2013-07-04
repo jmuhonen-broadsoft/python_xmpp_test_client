@@ -40,15 +40,25 @@ class RosterHandler(XmppHandler):
 		print( text )
 
 		print("-" * 60)
-		for jid in self.client_roster:
+		names = []
+		max_nl = 0
+		jids = []
+		details = []
+		for jid in sorted( self.client_roster ):
 			if jid is not self.boundjid.bare:
 				item = self.client_roster[jid]
-				text = " " + ("%s %s" % ( item["name"], jid) if len(item["name"]) > 0 else "%s" % jid)
-				text += " [ss: %s, pending: %s, waiting: %s]" % ( item["subscription"], item["pending_in"], item["pending_out"])
+				names.append( item["name"] )
+				max_nl = max( max_nl, len( item["name"] ))
+				jids.append( jid )
+				max_jl = max( max_nl, len( jid ))
+				text = "[ ss: %-*s pending: %-*s waiting: %-*s]" % ( 5, item["subscription"] + ",", 6, str(item["pending_in"]) + ",", 6, item["pending_out"])
 				if self.action == "pres":
 					pres = self.presence_to_str( jid )
 					text += " (" + ( pres if pres is not None else "No presence information" ) +")"
-				print( text )
+				details.append( text )
+		
+		for name, jid, detail in zip( names, jids, details ):
+			print( name + " " * (max_nl - len( name ) + 1) + "\t" + jid +  " " * (max_jl - len( jid ) + 1) + "\t" + detail )
 		print()
 
 		if self.action == "gen":
@@ -67,20 +77,24 @@ class RosterHandler(XmppHandler):
 						jids.append(jid)
 			self.jids = set(jids)
 
+		
+		self.jids.remove( self.boundjid.bare )
 		jids = self.jids.copy()
 		self.add_event_handler("roster_update", self._roster_update)
 		disconnect = (jids == None or len(jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
 		if self.action in ["add", "addonly"]:
 			not_handled = 0
 			for jid in jids:
-				if self.client_roster[jid]["subscription"] not in ["to", "both"]:
+				item = self.client_roster[jid]
+				if item is None or (item["subscription"] is "none" and not item["pending_out"] or item["subscription"] is "from" and item["pending_in"]):
+					print( "adding %s" % jid )
 					self.client_roster.add(jid)
 					self.client_roster.subscribe(jid)
 					if self.action == "addonly":
 						self.client_roster.unsubscribe(jid)
 				else:
 					not_handled += 1
-					print( "%s already subscribed" % ( jid ))
+					print( "%s already subscribed (%d/%d)" % ( jid, not_handled, len(jids) ))
 					disconnect = (len(jids) == not_handled)
 		elif self.action == "del":
 			for jid in jids:
@@ -108,16 +122,13 @@ class RosterHandler(XmppHandler):
 			print("Unknown action: %s" % (self.action))
 
 		if disconnect:
-			if jids != None and len(jids) > 0:
-				print("Nothing to be done")
 			self.disconnect()
 
 	def _roster_update(self, event):
 		event.enable("roster")
 		items = event["roster"]["items"]
 		jids = items.keys()
-		if len(jids) == 1:
-			jid = list(jids)[0]
+		for jid in jids:
 			if jid in self.jids:
 				if self.action == "del":
 					print("Deleted and unsubscribed %s" % (jid))
