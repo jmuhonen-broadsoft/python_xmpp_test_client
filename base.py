@@ -20,7 +20,7 @@ class XmppDetails:
 
 		self.server = server
 		self.port = port if port != None and len(port) > 0 else 5222
-		self.secure = secure
+		self.secure = secure if secure != None else False
 		self.username = username
 		self.password = password
 
@@ -48,11 +48,23 @@ def extractXmppDetails(xml):
 	password = creds.find("password").text
 
 	service = xmpp.find("service-location")
-	server = service.text
-	port = service.get("port")
+	if service is not None:
+		server = service.text
+		port = service.get("port")
+	else:
+		server = None
+		port = None
 
-	secure = xmpp.find("ssl").get("enabled") == "true"
-	resource = xmpp.find("resource").text
+	secure = None
+	ssl = xmpp.find("ssl")
+	if ssl is not None:
+		secure = ssl.get("enabled") == "true"
+	else:
+		ssl = xmpp.find("use-ssl")
+		if ssl is not None:
+			secure = ssl.text
+	res = xmpp.find("resource")
+	resource = res.text if res is not None else ""
 
 	return XmppDetails(server, port, secure, username, password, resource)
 

@@ -43,6 +43,7 @@ class RosterHandler(XmppHandler):
 		names = []
 		max_nl = 0
 		jids = []
+		max_jl = 0
 		details = []
 		for jid in sorted( self.client_roster ):
 			if jid is not self.boundjid.bare:
@@ -50,7 +51,7 @@ class RosterHandler(XmppHandler):
 				names.append( item["name"] )
 				max_nl = max( max_nl, len( item["name"] ))
 				jids.append( jid )
-				max_jl = max( max_nl, len( jid ))
+				max_jl = max( max_jl, len( jid ))
 				text = "[ ss: %-*s pending: %-*s waiting: %-*s]" % ( 5, item["subscription"] + ",", 6, str(item["pending_in"]) + ",", 6, item["pending_out"])
 				if self.action == "pres":
 					pres = self.presence_to_str( jid )
@@ -77,8 +78,8 @@ class RosterHandler(XmppHandler):
 						jids.append(jid)
 			self.jids = set(jids)
 
-		
-		self.jids.remove( self.boundjid.bare )
+		if self.boundjid.bare in self.jids:
+			self.jids.remove( self.boundjid.bare )
 		jids = self.jids.copy()
 		self.add_event_handler("roster_update", self._roster_update)
 		disconnect = (jids == None or len(jids) == 0 or self.action not in ["add", "addonly", "del", "unsubs"])
@@ -175,6 +176,8 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 		action = sys.argv[3] if len(sys.argv) > 3 else None
 		argv = 4
 	else:
+		username = None
+		password = None
 		argv = 3
 
 	jids = None
@@ -187,8 +190,11 @@ if len(sys.argv) > 0 and __file__ == sys.argv[0]:
 			for i in range(argv, len(sys.argv)):
 				jids.append(sys.argv[i])
 
-	with open(filename, "r") as config:
-		client = RosterHandler( config.read(), username, password )
-		client.setAction( action, jids )
-		if client.connect():
-			client.process(block=True)
+	try:
+		with open(filename, "r") as config:
+			client = RosterHandler( config.read(), username, password )
+			client.setAction( action, jids )
+			if client.connect():
+				client.process(block=True)
+	except IOError as e:
+		print( "config file %s could not be opened" % filename )

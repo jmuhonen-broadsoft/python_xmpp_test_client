@@ -46,7 +46,8 @@ elif len(sys.argv) > 1 and __file__ == sys.argv[0]:
 	try:
 		xml = getDm(dm_url, dm_usr, dm_pwd)
 	except:
-		print("get failed")
+		print("get failed %s" % dm_usr)
 		exit()
 
+	print("get successful %s" % dm_usr)
 	writeDm(dm_cfn, xml)
